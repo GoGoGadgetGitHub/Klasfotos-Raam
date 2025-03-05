@@ -13,5 +13,5 @@ Raam is pretty simple. It takes in a png that will be pasted onto an image. A ra
 
 One major oversight of this script is also just that. The framing process has a resizing step. So this means that when you give it an image that is not in the aspect ratio it expects it will resize that image into the constant aspect ratio of all other images, morphing it. For the most part we mitigate this by deleting those images and framing them with the old manual process we had in place before the script was in use.
 
-## Dropbox
+## Dropbox:
 This does the same duplicating file structure thing as the Raam script. The only processing done on the images is compression. This makes the images smaller and easier to upload to dropbox. These programs are used by our photographers while they are far away form the office and the framed images are needed to make order forms. They use dropbox to upload these images to the cloud so we at the office can use them.
