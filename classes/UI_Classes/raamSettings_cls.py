@@ -1,4 +1,4 @@
-from UI import Ui_raam_settings
+from UI import Ui_RaamSettings
 from shared.commen import *
 from shared.paths import *
 from PyQt6.QtWidgets import QDialog
@@ -6,7 +6,7 @@ from PyQt6.QtGui import QPixmap, QImage
 from PIL import ImageDraw, ImageFont, Image
 from logging import disable, warning, critical, info
 
-class RaamSettings(Ui_raam_settings, QDialog):
+class RaamSettings(Ui_RaamSettings, QDialog):
     def __init__(self, MainWindow) -> None:
         super().__init__()
         self.setupUi(self)

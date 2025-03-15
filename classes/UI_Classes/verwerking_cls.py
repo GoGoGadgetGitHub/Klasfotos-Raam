@@ -1,5 +1,5 @@
 from time import perf_counter
-from UI import Ui_verwerking
+from UI import Ui_Verwerking
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QColorDialog
 from PyQt6 import QtGui, QtCore
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
@@ -16,11 +16,11 @@ import logging
 class Worker(QtCore.QObject):
     done = pyqtSignal()
     started = pyqtSignal()
-    
+
     def __init__(self, parent) -> None:
         super().__init__()
         self.par = parent
-    
+
     def run(self):
         self.started.emit()
         if self.par.cbxRaam.isChecked():
@@ -35,17 +35,15 @@ class Worker(QtCore.QObject):
             return
         self.done.emit()
 
-class Verweking(QMainWindow, Ui_verwerking):
-    
+class Verweking(QMainWindow, Ui_Verwerking):
+
     def __init__(self) -> None:
         super().__init__()
         self.setupUi(self)
-        
-        hide_console()
-        
+
         logging.basicConfig(level= logging.INFO, filename=f"{getcwd()}/Log.log", format="%(levelname)s:%(filename)s:%(lineno)d:%(funcName)s: %(message)s")
         logging.info("_________NEW_________")
-        
+
         self.fontColor =(0,0,0)
         self.templatePathK = ""
         self.templatePathR = ""
@@ -59,6 +57,7 @@ class Verweking(QMainWindow, Ui_verwerking):
         self.btnSelectTemplateK.clicked.connect(self.select_template_K)
         self.btnSelectTemplateR.clicked.connect(self.select_template_R)
         self.btnStart.clicked.connect(self.start)
+        self.progressBar.setValue(0)
 
 #RAAM
 #----------------------------------------------------------------------------------
@@ -72,7 +71,7 @@ class Verweking(QMainWindow, Ui_verwerking):
             show_dialog_ok("Error", "Could not load font!")
             logging.critical(e)
             exit(0)
-        
+
         draw.text((t_PosX,t_PosY), text, self.rColour, font = font, anchor = 'ls')
 
     def Raam(self):
@@ -80,11 +79,10 @@ class Verweking(QMainWindow, Ui_verwerking):
         Runs the raam function on all the images in self.Folder and saves them in a folder called RAAM
         with the same structure as the original folder
         """
-        show_console()
-        
+
         logging.info("Raam Start")
         template = Image.open(self.templatePathR)
-        
+
         for r,ds,f in walk(f"{self.Folder}/ORG"):
             for d in ds:
                 newDest = join(f"{self.Folder}/RAAM", d) 
@@ -130,7 +128,7 @@ class Verweking(QMainWindow, Ui_verwerking):
         print(self.klasfotoSettings)
         logging.info("Klasfotos Start")
         print("Starting with klasfotos.")
-        
+
         makedirs(f"{self.Folder}/KLAS", exist_ok = True)
         for r, sd, fs in walk(f"{self.Folder}/ORG"):
             for d in sd:
@@ -147,16 +145,16 @@ class Verweking(QMainWindow, Ui_verwerking):
 
 
                     name = f"{self.Folder}/KLAS/{d}.jpg"
-                    
+
                     print(f"Saving: {name}")
                     logging.info(f"Saving: {name}")
                     sheet.save(f"{name}")
-                    
+
                 except Exception as e:
                     show_dialog_ok("Error", f"Could not make {d}. It will be ignored for now")
                     logging.warning(e)
-                
-#DROPBOX   
+
+#DROPBOX
 #-----------------------------------------------------------------------------------
     def Dropbox(self):
         """
@@ -164,7 +162,7 @@ class Verweking(QMainWindow, Ui_verwerking):
         """
         logging.info("DropBox Start")
         print("Starting with Dropbox.")
-        
+
         for r,ds,fs in walk(f"{self.Folder}/RAAM"):
             for d in ds:
                 newDest = join(f"{self.Folder}/DROPBOX", d)
@@ -176,9 +174,9 @@ class Verweking(QMainWindow, Ui_verwerking):
                             resized = image.resize((int((8*72)),int((5*72))))
                         else:
                             resized = image.resize((int((5*72)), int((8*72))))
-                        
+
                         name = f"{newDest}/{f}"
-                        
+
                         print(f"Saving: {name}")
                         logging.info(f"Saving: {name}")
                         resized.save(name)
@@ -194,10 +192,11 @@ class Verweking(QMainWindow, Ui_verwerking):
         elif prev != "" and self.Folder == "":
             self.Folder = prev
         Icon_Title(self, f"Verwerking - {self.Folder.split('/')[-1]}")
+        self.lblFolder.setText(f"Folder: {self.Folder}")
 
     def select_template_K(self):
         prev = self.templatePathK
-        self.templatePathK = QFileDialog.getOpenFileName(self, "Choose Template",f"{self.Folder}")[0]
+        self.templatePathK = QFileDialog.getOpenFileName(self, "Choose Template",self.Folder)[0]
         if self.templatePathK == '':
             return
         elif self.templatePathK != '' and Image.open(self.templatePathK).size != (8*300,5*300):
@@ -209,6 +208,7 @@ class Verweking(QMainWindow, Ui_verwerking):
         self.imgKPreview.setPixmap(QtGui.QPixmap(self.templatePathK))
         self.imgKPreview.setScaledContents(True)
         self.btnStart.setEnabled(True)
+        self.lblKlasfoto.setText(f"Folder: {self.templatePathK}")
 
     def select_template_R(self):
         prev = self.templatePathR
@@ -221,12 +221,12 @@ class Verweking(QMainWindow, Ui_verwerking):
         self.imgRPreview.setScaledContents(True)
         self.templateR = Image.open(self.templatePathR)
         self.btnStart.setEnabled(True)
+        self.lblRaam.setText(f"Folder: {self.templatePathR}")
     
     def run(self):
         self.worker = Worker(self)
         self.thrd = QThread()
         self.worker.moveToThread(self.thrd)
-        self.worker.started.connect(lambda: show_dialog_ok("Info", "Your work is being processed. This may take a while.\n You can monitor the progress in the black console window."))
         self.thrd.started.connect(self.worker.run)
         self.worker.done.connect(self.thrd.quit)
         self.worker.done.connect(lambda: show_dialog_ok("Info", "Your work is done!"))
@@ -235,7 +235,6 @@ class Verweking(QMainWindow, Ui_verwerking):
         self.thrd.start()
 
     def start(self):
-        show_console()
         try:
             if self.cbxRaam.isChecked():
                 if self.templatePathR == "":
@@ -254,5 +253,3 @@ class Verweking(QMainWindow, Ui_verwerking):
             logging.warning(e)
             print(e)
             exit(0)
-            
-        

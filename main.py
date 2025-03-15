@@ -2,11 +2,11 @@ from shared.commen import Icon_Title
 from PyQt6.QtWidgets import QApplication
 import sys
 from classes import Verweking
-from shared.paths import STYLE
+from qt_material import apply_stylesheet
 
 def main():
     app = QApplication(sys.argv)
-    app.setStyleSheet(STYLE)
+    apply_stylesheet(app, theme='dark_amber.xml')
     
     v = Verweking()
     Icon_Title(v,"Verwerking")

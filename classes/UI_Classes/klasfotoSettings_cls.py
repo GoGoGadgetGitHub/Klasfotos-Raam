@@ -24,6 +24,7 @@ class KlasfotoSettings(Ui_KlasfotoSettings, QDialog):
         self.rows = len(self.classes)
         self.fontColour = (255,255,255)
         self.rbtWhite.setChecked(True)
+         
         
         #Initial Table Setup
         for row in range(self.rows):

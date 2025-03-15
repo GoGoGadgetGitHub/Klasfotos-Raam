@@ -1,4 +1,3 @@
-import ctypes
 from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtGui import QIcon
 from .paths import LOGO
@@ -6,12 +5,6 @@ from .paths import LOGO
 def Icon_Title(window, title):
         window.setWindowIcon(QIcon(LOGO))
         window.setWindowTitle(title)
-
-def show_console():
-        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 4)
-
-def hide_console():
-        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
 def show_dialog_ok(title, message):
         msgBox = QMessageBox()
