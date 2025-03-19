@@ -16,6 +16,7 @@ import logging
 class Worker(QtCore.QObject):
     done = pyqtSignal()
     started = pyqtSignal()
+    update_progress_bar = pyqtSignal()
 
     def __init__(self, parent) -> None:
         super().__init__()
@@ -52,12 +53,25 @@ class Verweking(QMainWindow, Ui_Verwerking):
         self.kColour = ()
         self.rColour = ()
         self.klasfotoSettings = {}
+        self.progressBar.setValue(0)
+
+        self.worker = Worker(self)
+        self.thrd = QThread()
+        self.worker.moveToThread(self.thrd)
+        self.thrd.started.connect(self.worker.run)
+        self.worker.done.connect(self.thrd.quit)
+        self.worker.done.connect(lambda: show_dialog_ok("Info", "Your work is done!"))
+        self.worker.done.connect(self.worker.deleteLater)
+        self.thrd.finished.connect(self.thrd.deleteLater)
 
         self.btnSelectFolder.clicked.connect(self.select_folder)
         self.btnSelectTemplateK.clicked.connect(self.select_template_K)
         self.btnSelectTemplateR.clicked.connect(self.select_template_R)
         self.btnStart.clicked.connect(self.start)
-        self.progressBar.setValue(0)
+        self.worker.update_progress_bar.connect(self.updateProgress)
+
+    def updateProgress(self):
+        self.progressBar.setValue(self.progressBar.value() + 1)
 
 #RAAM
 #----------------------------------------------------------------------------------
@@ -90,7 +104,7 @@ class Verweking(QMainWindow, Ui_Verwerking):
                 for rt, dirs, fs in walk(join(r,d)):
                     for f in fs:
                         imagePath = path.join(r,d,f)
-                        if ".jpg" not in imagePath:
+                        if ".JPG" not in imagePath.upper():
                             logging.warning(f"Filename:{imagePath} is not a .jpg")
                             show_dialog_ok("Error", f"{imagePath} is not a .jpg")
                             break
@@ -99,6 +113,7 @@ class Verweking(QMainWindow, Ui_Verwerking):
                         print("Saving: ", newFileName)
                         logging.info(f"Saving: {newFileName}")
                         framedImage.save(newFileName, quality = 100)
+                        self.worker.update_progress_bar.emit()
 
     def raam(self, imagePath):
         """
@@ -125,34 +140,22 @@ class Verweking(QMainWindow, Ui_Verwerking):
         """
         Creates a contact sheet for each subdir in self.Folder
         """
-        print(self.klasfotoSettings)
         logging.info("Klasfotos Start")
-        print("Starting with klasfotos.")
 
-        makedirs(f"{self.Folder}/KLAS", exist_ok = True)
-        for r, sd, fs in walk(f"{self.Folder}/ORG"):
+        makedirs(join(self.Folder, "KLAS"), exist_ok = True)
+        for r, sd, fs in walk(join(self.Folder,"ORG")):
             for d in sd:
                 classPath = join(r,d)
-                try:
-                    GraadGradeNone = self.klasfotoSettings[d]
-                    print(GraadGradeNone)
+                GraadGradeNone = self.klasfotoSettings[d]
 
-                    start = perf_counter()
-                    sheet = ContactSheet(7.5, 3.765, classPath, self.templatePathK, GraadGradeNone, self.kColour)    
-                    end = perf_counter()
+                sheet = ContactSheet(7.5, 3.765, classPath, self.templatePathK, GraadGradeNone, self.kColour)    
 
-                    print(f"Instantiation time: {end - start}")
+                name = join(self.Folder, "KLAS", f"{d}.jpg")
 
+                logging.info(f"Saving: {name}")
+                sheet.save(f"{name}")
+                self.worker.update_progress_bar.emit()
 
-                    name = f"{self.Folder}/KLAS/{d}.jpg"
-
-                    print(f"Saving: {name}")
-                    logging.info(f"Saving: {name}")
-                    sheet.save(f"{name}")
-
-                except Exception as e:
-                    show_dialog_ok("Error", f"Could not make {d}. It will be ignored for now")
-                    logging.warning(e)
 
 #DROPBOX
 #-----------------------------------------------------------------------------------
@@ -180,6 +183,7 @@ class Verweking(QMainWindow, Ui_Verwerking):
                         print(f"Saving: {name}")
                         logging.info(f"Saving: {name}")
                         resized.save(name)
+                        self.worker.update_progress_bar.emit()
 
 # UI IMPLEMENTATION
 #-----------------------------------------------------------------------------------
@@ -224,18 +228,32 @@ class Verweking(QMainWindow, Ui_Verwerking):
         self.lblRaam.setText(f"Folder: {self.templatePathR}")
     
     def run(self):
-        self.worker = Worker(self)
-        self.thrd = QThread()
-        self.worker.moveToThread(self.thrd)
-        self.thrd.started.connect(self.worker.run)
-        self.worker.done.connect(self.thrd.quit)
-        self.worker.done.connect(lambda: show_dialog_ok("Info", "Your work is done!"))
-        self.worker.done.connect(self.worker.deleteLater)
-        self.thrd.finished.connect(self.thrd.deleteLater)
         self.thrd.start()
+
+    def calc_opperations(self):
+        totalOpperations = 0
+        countClasses = 0
+        countImages = 0
+
+        for root, dirs, files in walk(join(self.Folder, "ORG")):
+            for d in dirs:
+                countClasses += 1
+            for f in files:
+                countImages += 1
+
+        if self.cbxDrop.isChecked():
+            totalOpperations += countImages
+        if self.cbxKlas.isChecked():
+            totalOpperations += countClasses
+        if self.cbxRaam.isChecked():
+            totalOpperations += countImages
+
+        return totalOpperations
+        
 
     def start(self):
         try:
+            self.progressBar.setMaximum(self.calc_opperations())
             if self.cbxRaam.isChecked():
                 if self.templatePathR == "":
                     show_dialog_ok("Error", "You have to select a template for Raam.")

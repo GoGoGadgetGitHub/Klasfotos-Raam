@@ -19,7 +19,7 @@ class KlasfotoSettings(Ui_KlasfotoSettings, QDialog):
         self.imgPreview.setScaledContents(True)
         self.mainwindow = mainwondow
         self.settings = {}
-        self.classes =  [file for file in listdir(f"{mainwondow.Folder}\\ORG")]
+        self.classes =  [file for file in listdir(join(mainwondow.Folder,"ORG"))]
         self.currentClass = self.classes[0]
         self.rows = len(self.classes)
         self.fontColour = (255,255,255)
@@ -80,7 +80,7 @@ class KlasfotoSettings(Ui_KlasfotoSettings, QDialog):
             text = self.GraadGradeNone + " " + self.currentClass
         
         draw = ImageDraw.Draw(image)
-        font = ImageFont.truetype(f"{LOC_ASSETS}fonts\\Baskerville WGL4 BT Roman.ttf", 115)
+        font = ImageFont.truetype(join(ASSETS, "fonts", "Baskerville WGL4 BT Roman.ttf"), 115)
         
         t_PosX = (8 * 300) // 2
         t_PosY = (5 * 300)

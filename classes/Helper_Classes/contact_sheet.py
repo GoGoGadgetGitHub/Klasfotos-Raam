@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 from .image import c_image
-from os import getcwd, listdir, path, walk
+from os import getcwd, listdir, path, walk, sep
 from shared.paths import *
 
 class ContactSheet:
@@ -42,16 +42,16 @@ class ContactSheet:
             This function is safe to call outside of the class.
         """
         if self.GraadGrade != "":
-            text = self.GraadGrade + " " + self.folderpath.split('\\')[-1]
+            text = self.GraadGrade + " " + self.folderpath.split(sep)[-1]
         else:
-            text = self.folderpath.split('\\')[-1]
+            text = self.folderpath.split(sep)[-1]
         
         print(text)
                  
         t_PosX = self.iWidth // 2
         t_PosY = self.iHeight
         draw = ImageDraw.Draw(self.complete)
-        font = ImageFont.truetype(f"{LOC_ASSETS}fonts\\Baskerville WGL4 BT Roman.ttf", 115)
+        font = ImageFont.truetype(path.join(ASSETS,"fonts","Baskerville WGL4 BT Roman.ttf"), 115)
         
         draw.text((t_PosX,t_PosY), text, self.fontColor, font = font, anchor= "md")
     
