@@ -12,7 +12,10 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_RaamSettings(object):
     def setupUi(self, RaamSetgtings):
         RaamSetgtings.setObjectName("RaamSetgtings")
-        RaamSetgtings.resize(377, 617)
+        RaamSetgtings.setMinimumHeight(700)
+        RaamSetgtings.setMinimumWidth(400)
+        RaamSetgtings.setMaximumHeight(700)
+        RaamSetgtings.setMaximumWidth(400)
         self.gridLayout = QtWidgets.QGridLayout(RaamSetgtings)
         self.gridLayout.setObjectName("gridLayout")
         self.rbtWhite = QtWidgets.QRadioButton(parent=RaamSetgtings)
