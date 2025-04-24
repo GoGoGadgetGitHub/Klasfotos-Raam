@@ -15,7 +15,7 @@ class ContactSheet:
         self.iHeight = int(iHeight * ppi)
         self.iWidth = int(iWidth * ppi)
         self.origen = (0,0)
-        self.paths = [path.join(r,f) for r, sd, fs in walk(folder) for f in fs if ".jpg" in f]
+        self.paths = [path.join(r,f) for r, sd, fs in walk(folder) for f in fs if ".jpg" in f or ".JPG" in f]
         self.imageCount = len(self.paths)
         self.postioning = []
         self.width, self.height = 0, 0
